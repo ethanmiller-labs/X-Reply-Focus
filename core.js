@@ -28,5 +28,14 @@
     return hidden;
   }
   const isOwnPost = (author, account) => !!norm(account) && norm(author) === norm(account);
-  globalThis.XUF = {norm, extract, hiddenIds, isOwnPost};
+  function resolvePostContext(pathname, previous, hasDialog, sameTimeline) {
+    const match=pathname.match(/^\/([A-Za-z0-9_]+)\/status\/(\d+)(?:\/|$)/);
+    if(match) return {root:match[2],author:norm(match[1])};
+    // X changes the URL while keeping the original timeline behind its composer.
+    // Do not reuse a previous post on a standalone compose page or a new timeline.
+    if(/^\/compose\/(?:post|tweet)\/?$/.test(pathname) && previous && hasDialog && sameTimeline)
+      return {root:previous.root,author:previous.author};
+    return null;
+  }
+  globalThis.XUF = {norm, extract, hiddenIds, isOwnPost, resolvePostContext};
 })();

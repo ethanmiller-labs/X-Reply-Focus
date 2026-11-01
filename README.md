@@ -35,4 +35,4 @@ An independent third-party extension, not affiliated with X.
 
 独立开发的第三方插件，与 X 官方无关联。
 
-Version / 版本：1.2.0
+Version / 版本：1.2.1
