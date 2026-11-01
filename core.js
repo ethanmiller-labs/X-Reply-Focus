@@ -27,6 +27,17 @@
     hidden.delete(root);
     return hidden;
   }
+  function articleIdentity(article) {
+    for (const time of article.querySelectorAll('time')) {
+      if (time.closest('article') !== article) continue;
+      // Quote cards may contain an unlinked time, or a link wrapping the whole quote.
+      const link=time.closest('a[href]');
+      if (!link || link.querySelector('[data-testid="tweetText"]') || time.closest('div[role="link"], [data-testid="quoteTweet"]')) continue;
+      const match=link.getAttribute('href')?.match(/^\/([A-Za-z0-9_]{1,15})\/status\/(\d+)\/?$/);
+      if (match) return {id:match[2],author:norm(match[1])};
+    }
+    return null;
+  }
   const isOwnPost = (author, account) => !!norm(account) && norm(author) === norm(account);
   function resolvePostContext(pathname, previous, hasDialog, sameTimeline) {
     const match=pathname.match(/^\/([A-Za-z0-9_]+)\/status\/(\d+)(?:\/|$)/);
@@ -37,5 +48,5 @@
       return {root:previous.root,author:previous.author};
     return null;
   }
-  globalThis.XUF = {norm, extract, hiddenIds, isOwnPost, resolvePostContext};
+  globalThis.XUF = {norm, extract, hiddenIds, isOwnPost, resolvePostContext, articleIdentity};
 })();

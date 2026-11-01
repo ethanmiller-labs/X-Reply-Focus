@@ -53,4 +53,4 @@ Deleting a reply on X does not automatically remove its local history entry. To 
 
 Runs only on `x.com` and `twitter.com`. Does not read cookies, upload data, post replies, or modify posts on X. Account settings, the filter preference, and confirmed comment IDs are stored only on your device.
 
-Version: 1.2.1
+Version: 1.2.2

@@ -63,5 +63,40 @@ test('main post is never hidden, even when saved reply history includes it', () 
   assert.deepEqual([...hiddenIds([], 'heycuriousbear', '100', ['100'])], []);
 });
 
+// Minimal DOM fixtures exercise timestamp selection independently of X markup classes.
+function articleWithTimes(specs) {
+  const article={};
+  const times=specs.map(spec => {
+    const link=spec.href?{getAttribute:()=>spec.href,querySelector:()=>spec.wrapsQuote?{}:null}:null;
+    return {closest: selector => selector==='article'?(spec.nested?{}:article):selector==='a[href]'?link:spec.quoted?{}:null};
+  });
+  article.querySelectorAll=()=>times;
+  return article;
+}
+test('unlinked quoted timestamp before the main timestamp does not hide the panel', () => {
+  const a=articleWithTimes([{href:null},{href:'/HeyCuriousBear/status/2116766232733245617'}]);
+  const identity=context.XUF.articleIdentity(a);
+  assert.equal(identity.id,'2116766232733245617');
+  assert.equal(identity.author,'heycuriousbear');
+});
+test('a nested quoted article or role-link card cannot supply the outer identity', () => {
+  const a=articleWithTimes([{href:'/quoted/status/10',nested:true},
+    {href:'/quoted/status/11',quoted:true},{href:'/quoted/status/12',wrapsQuote:true},
+    {href:'/owner/status/100'}]);
+  assert.equal(context.XUF.articleIdentity(a).id,'100');
+});
+test('normal comment timestamp still resolves when followed by a quoted timestamp', () => {
+  const a=articleWithTimes([{href:'/fan/status/200'},{href:'/quoted/status/300',quoted:true}]);
+  assert.equal(context.XUF.articleIdentity(a).author,'fan');
+});
+test('media and analytics links cannot be mistaken for the main permalink', () => {
+  const a=articleWithTimes([{href:'/owner/status/100/photo/1'},
+    {href:'/owner/status/100/analytics'},{href:'/owner/status/100'}]);
+  assert.equal(context.XUF.articleIdentity(a).id,'100');
+});
+test('no valid outer permalink returns no identity', () => {
+  assert.equal(context.XUF.articleIdentity(articleWithTimes([{href:null}])),null);
+});
+
 if (require.main === module) for (const item of cases) nodeTest(item.name, item.run);
 module.exports = cases;

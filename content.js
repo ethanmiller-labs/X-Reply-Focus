@@ -1,5 +1,5 @@
 (() => {
-  const {norm,hiddenIds,isOwnPost,resolvePostContext}=XUF;
+  const {norm,hiddenIds,isOwnPost,resolvePostContext,articleIdentity}=XUF;
   let state={enabled:false,override:'',confirmed:{}}, records=new Map();
   let panel, status, toggle, input, timer, saving, ready=false;
   const text=()=>XUF_I18N.messages[XUF_I18N.current()];
@@ -27,7 +27,7 @@
   // Throttle rather than debounce: continuous timeline changes must not delay filtering.
   function schedule() {if(!timer) timer=setTimeout(()=>{timer=null;render();},100);}
   function createPanel() {
-    panel=document.createElement('section');panel.id='xuf-panel';panel.dataset.version='1.2.1';
+    panel=document.createElement('section');panel.id='xuf-panel';panel.dataset.version='1.2.2';
     panel.innerHTML='<div class="xuf-top"><strong>X Reply Focus</strong><button type="button" aria-pressed="false"></button></div><details><summary></summary><label><span class="xuf-username"></span><input maxlength="16" autocomplete="off"></label><p></p><button type="button" class="xuf-reset"></button></details><div class="xuf-status" aria-live="polite"></div>';
     toggle=panel.querySelector('[aria-pressed]');status=panel.querySelector('.xuf-status');input=panel.querySelector('input');input.value=state.override;
     toggle.onclick=()=>{state.enabled=!state.enabled;save();render();};
@@ -41,15 +41,8 @@
       const who=account();if(who){state.confirmed[who]={};records.clear();save();render();}
     };
   }
-  function articleId(article) {
-    const time=[...article.querySelectorAll('time')].find(t=>t.closest('article')===article);
-    return time?.closest('a')?.getAttribute('href')?.match(/\/status\/(\d+)/)?.[1];
-  }
-  function articleAuthor(article) {
-    const id=articleId(article);
-    const link=[...article.querySelectorAll('a[href]')].find(a=>a.querySelector('time') && a.closest('article')===article);
-    return id?norm(link?.getAttribute('href')?.match(/^\/([A-Za-z0-9_]+)\/status\//)?.[1]):'';
-  }
+  const articleId = article => articleIdentity(article)?.id;
+  const articleAuthor = article => articleIdentity(article)?.author || '';
   function safeCell(element) {
     const cell=element.closest('[data-testid="cellInnerDiv"]');
     // Never hide a shared container containing another tweet or the control panel.

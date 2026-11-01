@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2
+
+- Fix the panel not appearing on posts containing quoted posts or article previews.
+- Resolve the outer post from a valid time permalink, skipping unlinked quote timestamps, quote containers and media/analytics links.
+- 修复包含引用帖或文章预览时，引用时间干扰主帖识别、导致插件面板不显示的问题。
+
 ## 1.2.1
 
 - Keep the original post filter active when X opens a reply composer at `/compose/post` or `/compose/tweet`.
