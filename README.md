@@ -14,6 +14,8 @@ A lightweight Chrome extension that hides comments you have already replied to o
 - Updates as X loads more comments. 随 X 加载评论自动更新。
 - Stores preferences and detected reply history locally. No server, analytics, or cookie access. 本机存储，无服务器、统计或 Cookie 读取。
 
+- Automatically expands loaded reply controls and keeps Show replies available. 自动展开已加载的折叠回复，保留“显示回复”入口。
+
 ## Install / 安装
 
 1. Download and extract this repository. 下载并解压本仓库。
@@ -35,4 +37,4 @@ An independent third-party extension, not affiliated with X.
 
 独立开发的第三方插件，与 X 官方无关联。
 
-Version / 版本：1.2.2
+Version / 版本：1.3.0

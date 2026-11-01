@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- Keep Show replies controls visible during filtering, even if they share a cell with a hidden comment.
+- Expand up to 30 loaded reply branches once each per filter activation, at 600 ms intervals; pause in reply dialogs and background tabs.
+- Newly revealed unanswered comments remain visible even beneath previously answered comments.
+- 修复折叠回复中的后续留言不可见：保留入口并自动展开已加载的分支，继续按单条评论筛选。
+
 ## 1.2.2
 
 - Fix the panel not appearing on posts containing quoted posts or article previews.

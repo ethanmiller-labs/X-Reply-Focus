@@ -50,3 +50,52 @@
   }
   globalThis.XUF = {norm, extract, hiddenIds, isOwnPost, resolvePostContext, articleIdentity};
 })();
+(() => {
+  function isReplyExpansion(control) {
+    if(control.closest('#xuf-panel, article')) return false;
+    const label=(control.textContent || '').trim().replace(/\s+/g,' ');
+    return /^(?:显示(?:更多)?回复|查看(?:更多)?回复|顯示(?:更多)?回[覆復]|Show (?:more )?replies|View (?:more )?replies)(?:\s*[（(]?\d+[）)]?)?$/i.test(label);
+  }
+  const controlsIn=column => [...column.querySelectorAll('button,[role="button"]')].filter(isReplyExpansion);
+  function hiddenTarget(article) {
+    const cell=article.closest('[data-testid="cellInnerDiv"]');
+    // Hide just the article if hiding its cell would also hide an expansion control.
+    return cell && !cell.querySelector('#xuf-panel') && cell.querySelectorAll('article[data-testid="tweet"]').length===1 && !controlsIn(cell).length?cell:article;
+  }
+  function branchKey(control) {
+    const cell=control.closest('[data-testid="cellInnerDiv"]');
+    for(let sibling=cell?.previousElementSibling;sibling;sibling=sibling.previousElementSibling) {
+      const article=sibling.querySelector('article[data-testid="tweet"]');
+      const identity=article && XUF.articleIdentity(article);
+      if(identity) return identity.id;
+    }
+    return null;
+  }
+  class ReplyExpander {
+    constructor({onExpanded,canRun,delay=600,limit=30,timers=globalThis}) {
+      Object.assign(this,{onExpanded,canRun,delay,limit,timers});this.key=null;this.timer=null;
+    }
+    update(column,key,enabled) {
+      if(this.key!==key || !enabled) {
+        if(this.timer!==null) this.timers.clearTimeout(this.timer);
+        this.timer=null;this.key=enabled?key:null;
+        this.clicked=new WeakSet();this.branches=new Set();this.count=0;
+      }
+      if(!enabled || !column || this.timer!==null || this.count>=this.limit || !this.canRun()) return;
+      const candidate=controlsIn(column).find(button=>{
+        const branch=branchKey(button);
+        return !this.clicked.has(button) && (!branch || !this.branches.has(branch)) &&
+          !button.disabled && button.getAttribute('aria-disabled')!=='true' && button.getClientRects().length;
+      });
+      if(!candidate) return;
+      this.timer=this.timers.setTimeout(()=>{
+        this.timer=null;
+        if(!this.canRun() || !candidate.isConnected || !column.contains(candidate) || !isReplyExpansion(candidate)) return;
+        this.clicked.add(candidate);const branch=branchKey(candidate);if(branch)this.branches.add(branch);
+        this.count++;
+        candidate.click();this.onExpanded();
+      },this.delay);
+    }
+  }
+  globalThis.XUF_REPLIES={isReplyExpansion,hiddenTarget,ReplyExpander};
+})();

@@ -23,7 +23,7 @@ X Reply Focus is an independently developed third-party extension and is not aff
 2. Click **Hide replied** to hide comments confirmed as replied to, along with your own replies. Unanswered messages remain visible.
 3. Click **Show all** to restore the full comment list.
 
-The panel appears only on your own post detail pages. Other people's posts are not filtered. X's **Show replies** controls are hidden while filtering is on.
+The panel appears only on your own post detail pages. Other people's posts are not filtered. X's **Show replies** controls remain available while filtering is on. Loaded reply controls are expanded automatically; newly revealed unanswered messages remain visible, while answered comments stay hidden.
 
 If someone leaves another message, it stays visible until you reply to that particular message—even if it belongs to the earlier conversation thread.
 
@@ -45,7 +45,7 @@ If reloading fails after moving the extension folder, remove the old extension a
 
 ## Detection limits
 
-Only replies loaded by X can be detected. Historical replies that are not loaded, collapsed, or not returned by X may go undetected; their comments remain visible. The extension does not scroll, expand replies, or post comments automatically.
+Only replies loaded by X can be detected. Historical replies that are not loaded, collapsed, or not returned by X may go undetected; their comments remain visible. The extension does not scroll or post comments automatically. Each filter activation expands up to 30 loaded branches, once per branch. For additional pages, failed loads, or branches beyond this limit, you can still click **Show replies** manually.
 
 Deleting a reply on X does not automatically remove its local history entry. To start detection again, clear the local reply history in **Account settings**, then refresh the post.
 
@@ -53,4 +53,4 @@ Deleting a reply on X does not automatically remove its local history entry. To 
 
 Runs only on `x.com` and `twitter.com`. Does not read cookies, upload data, post replies, or modify posts on X. Account settings, the filter preference, and confirmed comment IDs are stored only on your device.
 
-Version: 1.2.2
+Version: 1.3.0

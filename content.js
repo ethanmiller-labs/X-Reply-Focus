@@ -2,6 +2,12 @@
   const {norm,hiddenIds,isOwnPost,resolvePostContext,articleIdentity}=XUF;
   let state={enabled:false,override:'',confirmed:{}}, records=new Map();
   let panel, status, toggle, input, timer, saving, ready=false;
+  const {hiddenTarget,ReplyExpander}=XUF_REPLIES;
+  const expander=new ReplyExpander({onExpanded:schedule,canRun:()=>{
+    const match=location.pathname.match(/^\/([A-Za-z0-9_]+)\/status\/(\d+)(?:\/|$)/);
+    return state.enabled && !document.hidden && !document.querySelector('[role="dialog"]') &&
+      !!match && match[2]===retainedContext?.root && norm(match[1])===account();
+  }});
   const text=()=>XUF_I18N.messages[XUF_I18N.current()];
   let retainedContext=null, retainedColumn=null;
   function account() {
@@ -27,7 +33,7 @@
   // Throttle rather than debounce: continuous timeline changes must not delay filtering.
   function schedule() {if(!timer) timer=setTimeout(()=>{timer=null;render();},100);}
   function createPanel() {
-    panel=document.createElement('section');panel.id='xuf-panel';panel.dataset.version='1.2.2';
+    panel=document.createElement('section');panel.id='xuf-panel';panel.dataset.version='1.3.0';
     panel.innerHTML='<div class="xuf-top"><strong>X Reply Focus</strong><button type="button" aria-pressed="false"></button></div><details><summary></summary><label><span class="xuf-username"></span><input maxlength="16" autocomplete="off"></label><p></p><button type="button" class="xuf-reset"></button></details><div class="xuf-status" aria-live="polite"></div>';
     toggle=panel.querySelector('[aria-pressed]');status=panel.querySelector('.xuf-status');input=panel.querySelector('input');input.value=state.override;
     toggle.onclick=()=>{state.enabled=!state.enabled;save();render();};
@@ -43,11 +49,6 @@
   }
   const articleId = article => articleIdentity(article)?.id;
   const articleAuthor = article => articleIdentity(article)?.author || '';
-  function safeCell(element) {
-    const cell=element.closest('[data-testid="cellInnerDiv"]');
-    // Never hide a shared container containing another tweet or the control panel.
-    return cell && !cell.querySelector('#xuf-panel') && cell.querySelectorAll('article[data-testid="tweet"]').length<=1?cell:element;
-  }
   function render() {
     if(!ready || !document.body) return;
     const who=account();
@@ -81,15 +82,7 @@
       const active=state.enabled && !!who;
       for(const a of articles) {
         const id=articleId(a);if(!id || id===root) continue;
-        if(active && (hidden.has(id) || articleAuthor(a)===who)) {desired.add(safeCell(a));count++;}
-      }
-      if(active) for(const button of column.querySelectorAll('button,[role="button"],a[href]')) {
-        if(button.closest('#xuf-panel, article')) continue;
-        const label=(button.textContent || '').trim().replace(/\s+/g,' ');
-        if(/^(?:显示(?:更多)?回复|查看(?:更多)?回复|顯示(?:更多)?回[覆復]|Show (?:more )?replies|View (?:more )?replies)(?:\s*[（(]?\d+[）)]?)?$/i.test(label)) {
-          const cell=safeCell(button);
-          desired.add(cell.querySelector('article')?button:cell);
-        }
+        if(active && (hidden.has(id) || articleAuthor(a)===who)) {desired.add(hiddenTarget(a));count++;}
       }
       toggle.disabled=!who;
       const t=text();
@@ -106,6 +99,7 @@
     } else panel?.remove();
     for(const el of document.querySelectorAll('[data-xuf-hidden]')) if(!desired.has(el)) el.removeAttribute('data-xuf-hidden');
     for(const el of desired) if(!el.hasAttribute('data-xuf-hidden')) el.setAttribute('data-xuf-hidden','true');
+    expander.update(column,`${who}:${root || ''}`,!!root && !!column && isOwnPost(context?.author,who) && state.enabled);
   }
   chrome.storage.local.get('xufState').then(data=>{
     const s=data.xufState;
@@ -115,6 +109,7 @@
   new MutationObserver(mutations=>{
     if(mutations.some(m=>!m.target.closest?.('#xuf-panel') && (m.type==='attributes' || m.addedNodes.length || m.removedNodes.length))) schedule();
   }).observe(document,{childList:true,subtree:true,attributes:true,attributeFilter:['lang']});
+  document.addEventListener('visibilitychange',schedule);
   let path=location.pathname;
   setInterval(()=>{if(path!==location.pathname){path=location.pathname;schedule();}},700);
 })();
